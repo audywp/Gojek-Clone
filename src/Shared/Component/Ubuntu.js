@@ -13,7 +13,7 @@ export default function Ubuntu({
       style={{
         color: color,
         fontSize: size,
-        type: `Ubuntu-${type}`,
+        fontFamily: `Ubuntu-${type}`,
         letterSpacing: space,
       }}>
       {title}

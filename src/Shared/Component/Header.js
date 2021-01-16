@@ -1,8 +1,9 @@
-import React, {useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, Alert} from 'react-native';
 import {moderateScale} from 'react-native-size-matters';
 import {Color} from '../Global/Config/Color';
 import {Badge} from 'react-native-elements';
+import FastImage from 'react-native-fast-image';
 
 // icon
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -13,7 +14,13 @@ import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import {Layouting} from '../Global/Style/Layout';
 import Ubuntu from './Ubuntu';
 
-export default function Header() {
+// redux
+import {connect} from 'react-redux';
+// action
+import {ActionSetProfile} from '../../Store/action';
+import {LandingPage} from '../../Features/LandingPage/action';
+
+function Header(props) {
   const [Medium, setMedium] = useState(40);
 
   const style = StyleSheet.create({
@@ -39,6 +46,10 @@ export default function Header() {
     },
   });
 
+  useEffect(() => {
+    props.ActionSetProfile({name: 'Audy', balance: '200000.00'});
+  }, []);
+
   const RenderLeftComp = () => {
     return (
       <View
@@ -52,19 +63,33 @@ export default function Header() {
         </View>
         <View>
           <View style={[Layouting().flexRow, Layouting().centered]}>
-            <Ubuntu title="2390.00" size={moderateScale(20)} type="Bold" />
+            <Ubuntu
+              title={props.GlobalProps.balance}
+              size={moderateScale(20)}
+              type="Bold"
+            />
             <Ubuntu title=" $" size={moderateScale(14)} type="Bold" />
           </View>
-          <Ubuntu title="My Balance" size={moderateScale(14)} type="Bold" />
+          <Ubuntu
+            title={`${props.GlobalProps.name} Balance`}
+            size={moderateScale(14)}
+            type="Bold"
+          />
         </View>
       </View>
     );
   };
 
-  return (
-    <View
-      style={[style.container, Layouting().flexRow, Layouting().spaceBetween]}>
-      <RenderLeftComp />
+  const actionGetDataPokedex = () => {
+    if (props.LandingReducer.dataPokedex.length > 0) {
+      Alert.alert('data sudah di fetch');
+    } else {
+      props.LandingPage();
+    }
+  };
+
+  const RenderRightComp = () => {
+    return (
       <View
         style={[
           style.HeaderRight,
@@ -72,7 +97,7 @@ export default function Header() {
           Layouting().spaceAround,
         ]}>
         <AntDesign name="search1" size={moderateScale(22)} color="black" />
-        <TouchableOpacity>
+        <TouchableOpacity onPress={actionGetDataPokedex}>
           <SimpleLineIcons
             name="envelope-letter"
             size={moderateScale(22)}
@@ -86,6 +111,41 @@ export default function Header() {
         </TouchableOpacity>
         <SimpleLineIcons name="bell" size={moderateScale(22)} color="black" />
       </View>
-    </View>
+    );
+  };
+
+  console.log(props);
+  console.log(props.GlobalProps.name);
+
+  return (
+    <>
+      <View
+        style={[
+          style.container,
+          Layouting().flexRow,
+          Layouting().spaceBetween,
+        ]}>
+        <RenderLeftComp />
+        {RenderRightComp()}
+      </View>
+      <FastImage
+        source={{uri: props.LandingReducer.image}}
+        style={{width: moderateScale(200), height: moderateScale(200)}}
+        resizeMode="contain"
+      />
+    </>
   );
 }
+
+const mapStateToProps = (state) => ({
+  GlobalProps: state.GlobalReducer,
+  HomeProps: state.HomeReducer,
+  LandingReducer: state.LandingReducer,
+});
+
+const mapDispatchToProps = {
+  ActionSetProfile,
+  LandingPage,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Header);
